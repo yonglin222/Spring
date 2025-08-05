@@ -17,6 +17,14 @@ public class UserController {
     @Autowired
     UserService userService;
 
+    @PostMapping("/register")
+    public ResponseEntity<UserDTO> registerUser(
+            @RequestBody UserDTO userDTO) {
+        return new ResponseEntity<>(
+                userService.registerUser(userDTO),
+                HttpStatus.CREATED);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody UserDTO userDTO,
                                         HttpServletRequest request) {
