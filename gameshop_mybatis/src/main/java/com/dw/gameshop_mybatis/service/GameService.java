@@ -1,6 +1,7 @@
 package com.dw.gameshop_mybatis.service;
 
 import com.dw.gameshop_mybatis.dto.GameDTO;
+import com.dw.gameshop_mybatis.exception.ResourceNotFoundException;
 import com.dw.gameshop_mybatis.mapper.GameMapper;
 import com.dw.gameshop_mybatis.model.Game;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class GameService {
         if (game != null) {
             return game.toDTO();
         } else {
-            throw new RuntimeException("해당 Game이 없습니다. ID : " + id);
+            throw new ResourceNotFoundException("해당 Game이 없습니다. ID : " + id);
         }
     }
 }
