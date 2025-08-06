@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dw.gameshop_mybatis.mapper.BoardMapper">
+    <resultMap id="BoardWithUserMap" type="Board">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="createdDate" column="created_date"/>
+        <result property="modifiedDate" column="modified_date"/>
+        <result property="isActive" column="is_active"/>
+
+        <association property="user" javaType="User">
+            <id property="userName" column="user_name"/>
+            <result property="email" column="email"/>
+            <result property="realName" column="real_name"/>
+            <result property="createdAt" column="created_at"/>
+            <association property="authority" javaType="Authority">
+                <id property="authorityName" column="authority_name"/>
+            </association>
+        </association>
+    </resultMap>
+    <select id="getBoardByid" resultMap="BoardWithUserMap">
+        select * from board b, user u where b.user_name=u.user_name
+        and b.user_name=#{user_name}
+
+    </select>
+    <select id="getAllBoards" resultMap="BoardWithUserMap">
+        select * from board b, user u where b.user_name=u.user_name
+    </select>
+    <insert id="saveBoard" useGeneratedKeys="true" keyProperty="id">
+        insert into board (title, content, user_name, is_active) values
+        (#{title},#{content}, #{user_name}, #{is_active})
+    </insert>
+    <update id="updateBoard">
+        update board set
+        title = #{title},
+        content = #{content},
+        user_name = #{user_name}
+        where id = #{id}
+    </update>
+    <delete id="deleteBoard">
+        delete from board
+        where id = #{id}
+    </delete>
+</mapper>
