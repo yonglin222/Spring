@@ -19,7 +19,7 @@ public class GameService {
         List<GameDTO> gameDTOList = new ArrayList<>();
         List<Game> gameList = gameMapper.getAllGames();
         for (Game game : gameList) {
-            gameDTOList.add(game.toDTO());
+            gameDTOList.add(game.toDto());
         }
         return gameDTOList;
     }
@@ -27,7 +27,7 @@ public class GameService {
     public GameDTO getGameById(long id) {
         Game game = gameMapper.getGameById(id);
         if (game != null) {
-            return game.toDTO();
+            return game.toDto();
         } else {
             throw new ResourceNotFoundException("해당 Game이 없습니다. ID : " + id);
         }

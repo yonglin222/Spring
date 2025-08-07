@@ -17,7 +17,7 @@ public class Game {
     private String imageUrl;
     private String text;
 
-    public GameDTO toDTO() {
+    public GameDTO toDto() {
         return new GameDTO(
                 this.id,
                 this.title,

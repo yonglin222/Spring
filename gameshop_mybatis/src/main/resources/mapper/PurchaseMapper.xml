@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dw.gameshop_mybatis.mapper.PurchaseMapper">
+
+    <resultMap id="PurchaseWithDetailsMap" type="Purchase">
+        <id property="id" column="id"/>
+        <result property="purchaseTime" column="purchase_time"/>
+
+        <association property="game" javaType="Game">
+            <id property="id" column="id"/>
+            <result property="title" column="title"/>
+            <result property="price" column="price"/>
+        </association>
+
+        <association property="user" javaType="User">
+            <id property="userName" column="user_name"/>
+            <result property="email" column="email"/>
+            <result property="realName" column="real_name"/>
+            <association property="authority" javaType="Authority">
+                <id property="authorityName" column="authority_name"/>
+            </association>
+        </association>
+    </resultMap>
+    <insert id="savePurchase" useGeneratedKeys="true" keyProperty="id">
+        insert into Purchase (
+        game_id,
+        user_name,
+        purchase_time
+        ) VALUES (
+        #{purchase.game.id},
+        #{purchase.user.userName},
+        #{purchase.purchaseTime}
+        )
+    </insert>
+
+    <!-- Batch insert 방식
+        단 1번의 데이터베이스 연결로 전부 처리 가능함.
+        그러므로 1번의 트랜잭션 처리에 의해 여러 데이터의 저장이 가능하다.
+        리스트의 데이터양이 많을수록 매우 큰 성능차이가 발생.
+        100개의 데이터라면 100배 이상의 성능차이가 발생할 수 있음.
+     -->
+    <insert id="savePurchaseList" useGeneratedKeys="true" keyProperty="id">
+        insert into Purchase (
+        game_id,
+        user_name,
+        purchase_time
+        ) VALUES
+        <foreach collection="purchaseList" item="purchase" separator=",">
+            (#{purchase.game.id},
+            #{purchase.user.userName},
+            #{purchase.purchaseTime})
+        </foreach>
+    </insert>
+    <select id="getAllPurchases" resultMap="PurchaseWithDetailsMap">
+        SELECT
+        p.id AS purchase_id,
+        p.purchase_time ,
+        g.id ,
+        g.title ,
+        g.genre ,
+        g.price ,
+        g.image_url ,
+        g.text ,
+        u.user_name ,
+        u.email ,
+        u.password ,
+        u.real_name ,
+        u.created_at ,
+        a.authority_name
+        FROM
+        purchase p
+        JOIN
+        game g ON p.game_id = g.id
+        JOIN
+        user u ON p.user_name = u.user_name
+        JOIN
+        authority a ON u.user_authority = a.authority_name
+    </select>
+    <select id="getPurchaseListByUserName" resultMap="PurchaseWithDetailsMap">
+        select
+            p.id ,
+            p.purchase_time ,
+            g.id ,
+            g.title ,
+            g.genre ,
+            g.price ,
+            g.image_url ,
+            g.text ,
+            u.user_name ,
+            u.email ,
+            u.password ,
+            u.real_name ,
+            u.created_at ,
+            a.authority_name
+        from
+                purchase p
+            join
+                game g ON p.game_id = g.id
+            join
+                user u ON p.user_name = u.user_name
+            join
+                authority a ON u.user_authority = a.authority_name
+        WHERE
+            p.user_name = #{userName}
+    </select>
+    <select id="countPurchaseByUserNameAndGameId" resultMap="PurchaseWithDetailsMap">
+        SELECT
+            COUNT(*)
+        FROM
+            purchase
+        WHERE
+            user_name = #{userName} AND game_id = #{gameId}
+    </select>
+
+</mapper>

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @ToString
 public class Board {
     private Long id;
-    private String tatle;
+    private String title;
     private String content;
     private User user;
     private LocalDateTime createdDate;
@@ -24,7 +24,7 @@ public class Board {
     public BoardDTO toDto() {
         return new BoardDTO(
                 this.id,
-                this.tatle,
+                this.title,
                 this.content,
                 this.user.getUserName(),
                 this.modifiedDate);
