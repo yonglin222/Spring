@@ -28,20 +28,6 @@ public class PurchaseService {
     @Autowired
     GameMapper gameMapper;
 
-//    // 모든 구매 내역을 DTO 리스트로 가져오는 메서드
-//    public List<PurchaseDTO> getAllPurchases() {
-//        return purchaseMapper.getAllPurchases().stream()
-//                .map(Purchase::toDto)
-//                .collect(Collectors.toList());
-//    }
-//
-//    // 특정 사용자의 구매 내역을 DTO 리스트로 가져오는 메서드
-//    public List<PurchaseDTO> getPurchaseListByUserName(String userName) {
-//        return purchaseMapper.getPurchaseListByUserName(userName).stream()
-//                .map(Purchase::toDto)
-//                .collect(Collectors.toList());
-//    }
-//
     /* @Transactional 구매 정보를 저장하는 메서드 (트랜잭션 적용)
     메서드 내의 모든 DB작업이 하나의 단위(=트랜잭션)로
     묶이도폭 해야함 (서비스레이어에 반드시 사용!!)
@@ -52,21 +38,22 @@ public class PurchaseService {
     public List<PurchaseDTO> savePurchaseList(
             List<PurchaseDTO> purchaseDTOList) {
         if (purchaseDTOList == null || purchaseDTOList.isEmpty()) {
-            throw new InvalidRequestException("구매목록이 비었습니다");
+            throw new InvalidRequestException("구매 목록이 비었습니다.");
         }
+
         String userName = purchaseDTOList.getFirst().getUser().getUserName();
         User user = userMapper.getUserByUserName(userName);
         if (user == null) {
             throw new ResourceNotFoundException(
                     "해당 유저가 없습니다: " + userName);
         }
-        // PurchaseDTO -> Purchase
+        // PurchaseDTO => Purchase 로 변형
         List<Purchase> purchases = purchaseDTOList.stream()
                 .map(dto -> {
                     Game game = gameMapper.getGameById(dto.getGame().getId());
                     if (game == null)
                         throw new ResourceNotFoundException("해당 게임이 없습니다.");
-                    return  new Purchase(
+                    return new Purchase(
                             0,
                             game,
                             user,
@@ -77,6 +64,70 @@ public class PurchaseService {
         purchaseMapper.savePurchaseList(purchases);
         return purchaseDTOList;
     }
+
+    @Transactional(readOnly = true)
+    /*
+    - 읽기작업도 트랜잭션이 필요함. 읽는중에 데이터가 다른 틀랜잭션에 의해서 변경되면
+        데이터의 일관성을 유지할 수 없음(Dirty Read)
+    - readOnly로 세팅을 하면 실제 네트워크에서는 읽기전용 DB서버를 이용하므로
+        더 빠르게 서비스를 수행할 수 있음
+    - 여러 readOnly 트랙잭션은 동시에 읽기작업도 가능함
+    - 클래스에 @Transactionaldmf 선언하면 읽기작업을 할때도 쓰기작업할때처럼 아래의
+        트랙잭션 작업을 수행하게 되므로 자원의 낭비가 심하게 됨.
+        1) 쓰기락(lock)
+        2) 트랙잭션 로그생성
+        3) 롤백을 위한 정보유지
+     */
+
+    // 모든 구매 내역을 DTO 리스트로 가져오는 메서드
+    public List<PurchaseDTO> getAllPurchases() {
+        return purchaseMapper.getAllPurchases().stream()
+                .map(Purchase::toDto)
+                .collect(Collectors.toList());
+    }
+    @Transactional(readOnly = true)
+    public List<PurchaseDTO> getPurchaseListByCurrentUser(User currentUser) {
+        if (currentUser == null) {
+            throw new InvalidRequestException("세션이 없습니다.");
+        }
+        return purchaseMapper
+                .getPurchaseListByUserName(currentUser.getUserName())
+                .stream()
+                .map(Purchase::toDto)
+                .toList();
+    }
+    // 특정 사용자의 구매 내역을 DTO 리스트로 가져오는 메서드
+    public List<PurchaseDTO> getPurchaseListByUserName(String userName) {
+        return purchaseMapper.getPurchaseListByUserName(userName).stream()
+                .map(Purchase::toDto)
+                .collect(Collectors.toList());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //    @Transactional
 //    public List<PurchaseDTO> savePurchaseList(
@@ -90,21 +141,6 @@ public class PurchaseService {
 //            throw new IllegalStateException("User already purchased this game.");
 //        }
 //    }
-    @Transactional(readOnly = true)
-    /*
-    - 읽기작업은 트랜잭션이 필요없기는 하지만 하는것이 좋음
-        readOnly로 세팅을 하면 실제 네트워크에서는 읽기전용 DB서버를 이용하므로
-        더 빠르게 서비스를 수행할 수 있음
-    - 클래스에 @Transactionaldmf 선언하면 읽기작업을 할때도 쓰기작업할때처럼 아래의
-        트랙잭션 작업을 수행하게 되므로 자원의 낭비가 심하게 됨.
-        1) 쓰기락(lock)
-        2) 트랙잭션 로그생성
-        3) 롤백을 위한 정보유지
-     */
-    public List<PurchaseDTO> getAllPurchases() {
-        return null;
-    }
-
 //        // Purchase 객체 생성
 //        Purchase newPurchase = new Purchase();
 //        newPurchase.setUser(user);
@@ -115,4 +151,3 @@ public class PurchaseService {
 //        purchaseMapper.savePurchase(newPurchase);
 
 
-}
