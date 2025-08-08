@@ -32,4 +32,11 @@ public class GameService {
             throw new ResourceNotFoundException("해당 Game이 없습니다. ID : " + id);
         }
     }
+
+    public List<GameDTO> getGamesByPage(int page, int size) {
+        int offset = page * size;
+        return gameMapper.getGamesByPage(offset, size).stream()
+                .map(Game::toDto)
+                .toList();
+    }
 }

@@ -2,6 +2,7 @@ package com.dw.gameshop_mybatis.service;
 
 import com.dw.gameshop_mybatis.dto.PurchaseDTO;
 import com.dw.gameshop_mybatis.exception.InvalidRequestException;
+import com.dw.gameshop_mybatis.exception.PermissionDeniedException;
 import com.dw.gameshop_mybatis.exception.ResourceNotFoundException;
 import com.dw.gameshop_mybatis.mapper.GameMapper;
 import com.dw.gameshop_mybatis.mapper.PurchaseMapper;
@@ -65,8 +66,7 @@ public class PurchaseService {
         return purchaseDTOList;
     }
 
-    @Transactional(readOnly = true)
-    /*
+    /* @Transactional(readOnly = true)
     - 읽기작업도 트랜잭션이 필요함. 읽는중에 데이터가 다른 틀랜잭션에 의해서 변경되면
         데이터의 일관성을 유지할 수 없음(Dirty Read)
     - readOnly로 세팅을 하면 실제 네트워크에서는 읽기전용 DB서버를 이용하므로
@@ -78,13 +78,40 @@ public class PurchaseService {
         2) 트랙잭션 로그생성
         3) 롤백을 위한 정보유지
      */
-
     // 모든 구매 내역을 DTO 리스트로 가져오는 메서드
-    public List<PurchaseDTO> getAllPurchases() {
+    @Transactional(readOnly = true)
+    public List<PurchaseDTO> getAllPurchases(User currentUser) {
+        if (currentUser == null) {
+            throw new InvalidRequestException("세션이 없습니다");
+        }
+        // 관리자 여부 확인
+        if (!currentUser.getAuthority().getAuthorityName().equals("ADMIN")) {
+            throw new PermissionDeniedException("권한이 없습니다.");
+        }
         return purchaseMapper.getAllPurchases().stream()
+                .map(Purchase::toDto).toList();
+    }
+
+    // 특정 사용자의 구매 내역을 DTO 리스트로 가져오는 메서드
+    public List<PurchaseDTO> getPurchaseListByUserName(
+            String userName, User currentUser) {
+        if (currentUser == null) {
+            throw new InvalidRequestException("세션이 없습니다");
+        }
+        // 관리자 여부 확인
+        if (!currentUser.getAuthority().getAuthorityName().equals("ADMIN")) {
+            throw new PermissionDeniedException("권한이 없습니다.");
+        }
+        User user = userMapper.getUserByUserName(userName);
+        if (user == null) {
+            throw new ResourceNotFoundException("해당 유저가 없습니다.");
+        }
+        return purchaseMapper.getPurchaseListByUserName(userName)
+                .stream()
                 .map(Purchase::toDto)
                 .collect(Collectors.toList());
     }
+
     @Transactional(readOnly = true)
     public List<PurchaseDTO> getPurchaseListByCurrentUser(User currentUser) {
         if (currentUser == null) {
@@ -96,37 +123,7 @@ public class PurchaseService {
                 .map(Purchase::toDto)
                 .toList();
     }
-    // 특정 사용자의 구매 내역을 DTO 리스트로 가져오는 메서드
-    public List<PurchaseDTO> getPurchaseListByUserName(String userName) {
-        return purchaseMapper.getPurchaseListByUserName(userName).stream()
-                .map(Purchase::toDto)
-                .collect(Collectors.toList());
-    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //    @Transactional
@@ -141,6 +138,23 @@ public class PurchaseService {
 //            throw new IllegalStateException("User already purchased this game.");
 //        }
 //    }
+
+
+// 모든 구매 내역을 DTO 리스트로 가져오는 메서드
+//    public List<PurchaseDTO> getAllPurchases() {
+//        return purchaseMapper.getAllPurchases().stream()
+//                .map(Purchase::toDto)
+//                .collect(Collectors.toList());
+//    }
+
+
+// 특정 사용자의 구매 내역을 DTO 리스트로 가져오는 메서드
+//    public List<PurchaseDTO> getPurchaseListByUserName(String userName) {
+//        return purchaseMapper.getPurchaseListByUserName(userName ).stream()
+//                .map(Purchase::toDto)
+//                .collect(Collectors.toList());
+//    }
+
 //        // Purchase 객체 생성
 //        Purchase newPurchase = new Purchase();
 //        newPurchase.setUser(user);

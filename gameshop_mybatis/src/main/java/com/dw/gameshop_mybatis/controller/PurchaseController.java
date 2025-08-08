@@ -44,16 +44,20 @@ public class PurchaseController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<PurchaseDTO>> getAllPurchases() {
+    public ResponseEntity<List<PurchaseDTO>> getAllPurchases(
+            HttpServletRequest request
+    ) {User currentUser = userService.getCurrentUser(request);
         return new ResponseEntity<>(
-                purchaseService.getAllPurchases(),
+                purchaseService.getAllPurchases(currentUser),
                 HttpStatus.OK
         );
     }
-    @GetMapping("id/{id}")
-    public ResponseEntity<GameDTO> getGameById(@PathVariable long id) {
+    @GetMapping("user/{userName}")
+    public ResponseEntity<List<PurchaseDTO>> getPurchaseListByUserName(
+            @PathVariable String userName, HttpServletRequest request)
+    {User currentUser = userService.getCurrentUser(request);
         return new ResponseEntity<>(
-                gameService.getGameById(id),
+                purchaseService.getPurchaseListByUserName(userName,currentUser),
                 HttpStatus.OK
         );
     }

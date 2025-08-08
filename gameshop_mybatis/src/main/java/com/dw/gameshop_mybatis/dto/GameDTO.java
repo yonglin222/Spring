@@ -1,6 +1,7 @@
 package com.dw.gameshop_mybatis.dto;
 
 import com.dw.gameshop_mybatis.enums.GameGenre;
+import com.dw.gameshop_mybatis.model.Game;
 import lombok.*;
 
 @NoArgsConstructor

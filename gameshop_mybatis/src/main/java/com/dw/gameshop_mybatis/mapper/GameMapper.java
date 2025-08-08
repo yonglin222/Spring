@@ -11,4 +11,7 @@ import java.util.List;
 public interface GameMapper {
     List<Game> getAllGames();
     Game getGameById(@Param("id") long id);
+    List<Game> getGamesByPage(
+            @Param("offset") int offset,
+            @Param("limit") int limit);
 }

@@ -13,4 +13,11 @@
         from games
         where id = #{id}
     </select>
+
+    <select id="getGamesByPage" resultType="Game">
+        select id, title, genre, price, image_url, text
+        from games
+        order by id
+        limit #{limit} offset #{offset}
+    </select>
 </mapper>

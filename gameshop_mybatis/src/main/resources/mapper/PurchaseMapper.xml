@@ -40,6 +40,7 @@
         리스트의 데이터양이 많을수록 매우 큰 성능차이가 발생.
         100개의 데이터라면 100배 이상의 성능차이가 발생할 수 있음.
      -->
+
     <insert id="savePurchaseList" useGeneratedKeys="true" keyProperty="id">
         insert into Purchase (
         game_id,
@@ -77,7 +78,7 @@
         WHERE u.user_name = #{userName}
         ORDER BY p.id DESC
     </select>
-    <select id="countPurchaseByUserNameAndGameId" resultMap="PurchaseWithDetailsMap">
+    <select id="countPurchaseByUserNameAndGameId" parameterType="map" resultType="int">
         SELECT
             COUNT(*)
         FROM
